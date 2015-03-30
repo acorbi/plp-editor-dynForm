@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<!-- Template Name: Rapido - Responsive Admin Template build with Twitter Bootstrap 3.x Version: 1.0 Author: ClipTheme -->
+<!--[if IE 8]><html class="ie8 no-js" lang="en"><![endif]-->
+<!--[if IE 9]><html class="ie9 no-js" lang="en"><![endif]-->
+<!--[if !IE]><!-->
+<html lang="en" class="no-js">
+<!--<![endif]-->
+<!-- start: HEAD -->
+
+<head>
+ <title>PLP-Editor</title>
+ <!-- start: META -->
+ <meta charset="utf-8" />
+ <!--[if IE]><meta http-equiv='X-UA-Compatible' content="IE=edge,IE=9,IE=8,chrome=1" /><![endif]-->
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-status-bar-style" content="black">
+ <meta content="" name="description" />
+ <meta content="oceatoon" name="author" />
+ <!-- end: META -->
+ <!-- start: MAIN CSS -->
+ <link rel="stylesheet" href="assets/plugins/bootstrap/dist/css/bootstrap.min.css">
+ <link rel="stylesheet" href="assets/plugins/font-awesome/css/font-awesome.min.css">
+ <link rel="stylesheet" href="assets/plugins/animate.css/animate.min.css">
+ <link rel="stylesheet" href="css/styles.css">
+ <link rel="stylesheet" href="css/styles-responsive.css">
+ <link rel="stylesheet" href='assets/plugins/select2/select2.css'>
+ <link rel="stylesheet" href='assets/plugins/toastr/toastr.min.css'>
+ <!--[if IE 7]>
+  <link rel="stylesheet" href="assets/plugins/font-awesome/css/font-awesome-ie7.min.css">
+  <![endif]-->
+ <!-- end: MAIN CSS -->
+ <!-- start: CSS REQUIRED FOR THIS PAGE ONLY -->
+ <!-- end: CSS REQUIRED FOR THIS PAGE ONLY -->
+</head>
+<!-- end: HEAD -->
+<!-- start: BODY -->
+
+<body style="background-color:#1F212F">
+ <div class="row">
+
+  <div class="space20"></div>
+
+  <div class="col-xs-10 col-xs-offset-1 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+
+   <div class="panel-white padding-20">
+
+    <h1>Take control of your profile data</h1>
+    <p>PLP proposes a pattern for the creation, storage, listing and representation of public profile data for people, groups, organizations, venues and a large etcetera. Based on Open Web Standards, Common Vocabularies and Open Source technologies, it offers
+     users the possibility to own the their data diverging from current mainstream and centralized profile platforms.</p>
+
+    <form id="form-join"></form>
+
+    <div class="space20"></div>
+    Notice :
+    <ul class=" padding-20" style="border:1px dashed #666">
+     <li> read your console </li>
+     <li> on Load fills fields Organization Name and Email based on personInitData</li>
+     <li> on Save, the resulting json is shown in console based on the endpoint format dataBindPerson</li>
+    </ul>
+
+   </div>
+
+  </div>
+ </div>
+ <style type="text/css">
+  label.error {
+   color: red;
+   font-size: 10px;
+  }
+ </style>
+
+ <!-- start: MAIN JAVASCRIPTS -->
+ <!--[if lt IE 9]>
+  <script src="assets/plugins/respond.min.js"></script>
+  <script src="assets/plugins/excanvas.min.js"></script>
+  <script type="text/javascript" src="assets/plugins/jQuery/jquery-1.11.1.min.js"></script>
+  <![endif]-->
+ <!--[if gte IE 9]><!-->
+ <script src="assets/plugins/jquery/dist/jquery.min.js"></script>
+ <!--<![endif]-->
+ <script src="assets/plugins/jquery-ui/jquery-ui.min.js"></script>
+ <script src="assets/plugins/bootstrap/dis/js/bootstrap.min.js"></script>
+ <script src="assets/plugins/jquery.transit/jquery.transit.js"></script>
+ <script src="assets/plugins/jquery-touchswipe/jquery.touchSwipe.min.js"></script>
+ <script src="assets/plugins/blockui/jquery.blockUI.js"></script>
+ <script src="assets/plugins/toastr/toastr.js"></script>
+ <!-- end: MAIN JAVASCRIPTS -->
+ <!-- start: JAVASCRIPTS REQUIRED FOR THIS PAGE ONLY -->
+ <script src="assets/plugins/jquery-validation/dist/jquery.validate.min.js"></script>
+ <script src="assets/plugins/select2/select2.min.js"></script>
+ <script src="assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+ <script src="js/jsonHelper.js"></script>
+ <script src="js/jquery.dynForm.js"></script>
+ <!-- end: JAVASCRIPTS REQUIRED FOR THIS PAGE ONLY -->
+
+ <script type="text/javascript">
+  /* **************************************
+   *	Describe each input of your form
+   ***************************************** */
+  var formDefinition = {
+   "jsonSchema": {
+    "title": "Person",
+    "type": "object",
+    "properties": {
+     "name": {
+      "inputType": "text",
+      "placeholder": "First name, Family name",
+      "rules": {
+       "required": true
+      }
+     },
+     "description": {
+      "inputType": "textarea",
+      "placeholder": "About yourself"
+     },
+     "birthDate": {
+      "inputType": "date",
+      "placeholder": "Birth date (DD/MM/YY)",
+      "icon": "fa fa-calendar"
+     },
+     "website": {
+      "inputType": "text",
+      "placeholder": "Homepage url (http://domain.ltd)",
+      "icon": "fa fa-link"
+     },
+     "image": {
+      "inputType": "text",
+      "placeholder": "Image url (http://domain.ltd/image_name.jpg)",
+      "icon": "fa fa-link"
+     },
+     "separator2": {
+      "title": "Address"
+     },
+     "addressLocality": {
+      "inputType": "text",
+      "placeholder": "City",
+     },
+     "addressCountry": {
+      "inputType": "text",
+      "placeholder": "Country",
+     },
+     "separator3": {
+      "title": "Organization"
+     },
+     "organization_url": {
+      "inputType": "text",
+      "placeholder": "Homepage url (http://domain.ltd)",
+      "icon": "fa fa-link"
+     },
+     "organization_name": {
+      "inputType": "text",
+      "placeholder": "Name of the organization"
+     },
+    }
+   },
+   "collection": "person",
+   "key": "personForm"
+  };
+
+  /* **************************************
+   *	You can Preset fields of the form or for editing
+   ***************************************** */
+  var personInitData = {
+
+  };
+
+  /* **************************************
+   *	You can define a Json schema as an endpoint after Save
+   ***************************************** */
+  var dataBindPerson = {
+   "#name": "name",
+   "#description": "description",
+   "#birthDate": "birthDate",
+   "#website": "website",
+   "#image": "image",
+   "#addressLocality": "address.addressLocality",
+   "#addressCountry": "address.addressCountry",
+   "#organization_url": "memberOf.url",
+   "#organization_name": "memberOf.name"
+  };
+
+  jQuery(document).ready(function() {
+   $('.box-join').show().addClass("animated flipInX").on('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function() {
+    $(this).removeClass("animated flipInX");
+   });
+
+   /* **************************************
+   *	Using the dynForm
+   - declare a destination point
+   - a formDefinition
+   - the onLoad method
+   - the onSave method
+   ***************************************** */
+   var form = $.dynForm({
+    formId: "#form-join",
+    formObj: formDefinition,
+    onLoad: function() {
+     toastr.info('Form is build! check console for details');
+     console.info("on Load connects person Data !!");
+     /*
+     here you can load anythnig into your form fields
+     it is called after creation
+     */
+     $.each(dataBindPerson, function(field, path) {
+      if (field != "") {
+       var val = jsonHelper.getValueByPath(personInitData, path);
+       if (val) {
+        $(field).val(val);
+        console.log("field key", field);
+       }
+      }
+     });
+     toastr.info('Form is filled!');
+    },
+    onSave: function() {
+     console.info("saving person!!");
+     var person = {};
+     $.each(dataBindPerson, function(field, path) {
+      //console.log("save key ",field,path);
+      if (field != "") {
+       if ($(field) && $(field).val() && $(field).val() != "") {
+        value = $(field).val();
+        jsonHelper.setValueByPath(person, path, value);
+       }
+      } else
+       console.error("save Error", field);
+     });
+     console.info("saved Object");
+     console.dir(person);
+     toastr.success('Check your console!');
+     $.unblockUI();
+     return false;
+     /*var params = {
+        "parentOrganisation":"<?php echo $_GET['id'] ?>",
+        "organizationEmail" : $("#organizationEmail").val() ,
+                 "organizationName" : $("#organizationName").val(),
+                 "postalCode" : $("#postalCode").val(),
+                 "organizationCountry" : "Réunion",
+                 "type" : $("#type").val(),
+                 "description" : $("#description").val(),
+                 "personName" : $("#personName").val(),
+                 "personEmail" : $("#personEmail").val()
+              };
+
+        $.blockUI({
+                      message : '<i class="fa fa-spinner fa-spin"></i> Processing... <br/> '+
+                      '<blockquote>'+
+                        "<p>Nothing can kill an open source project who's time has come..</p>"+
+                        '<cite>Richard Hugo & Victor Stallman</cite>'+
+                      '</blockquote> '
+                  });
+
+        $.ajax({
+          type: "POST",
+          url: baseUrl+"/<?php echo $this->module->id?>/organization/saveNewAddMember",
+          data: params,
+          dataType: "json"
+        }).done(function(data){
+         if(data.result)
+             window.location.reload();
+         else
+         {
+          $.unblockUI();
+       $('.errorHandler').html(data.msg);
+       $('.errorHandler').show();
+         }
+        });*/
+    }
+   });
+  });
+ </script>
+</body>
+<!-- end: BODY -->
+
+</html>
