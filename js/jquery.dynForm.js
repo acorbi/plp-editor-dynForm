@@ -2,283 +2,280 @@
 
 - add a form tag to your document
 - define your dynForm with a jsonSchema defintion of each field input
-- The process will then 
-	- first build the specified HTML  for each different field and input according to types
-   - bind any needed events according to types 
-	- bind the save Process if needed 
+- The process will then
+ - first build the specified HTML  for each different field and input according to types
+   - bind any needed events according to types
+ - bind the save Process if needed
    - apply any onLoad process
 
-parameters : 
+parameters :
 formId : is the <form> tag in the destination html
 formObj: is the form object containg the form field definition and jsonSchema
-formValues: contains the values if needed 
-onLoad : (optional) is a function that is launched once the form has been created and written into the DOM 
+formValues: contains the values if needed
+onLoad : (optional) is a function that is launched once the form has been created and written into the DOM
 onSave: (optional) overloads the generic saveProcess
 
 ***************************************** */
 (function($) {
-	"use strict";
-	var thisBody = document.body || document.documentElement, 
-	thisStyle = thisBody.style, 
-	$this,
-	supportTransition = thisStyle.transition !== undefined || thisStyle.WebkitTransition !== undefined || thisStyle.MozTransition !== undefined || thisStyle.MsTransition !== undefined || thisStyle.OTransition !== undefined
-	
-	/*$(subviewBackClass).on("click", function(e) {
-		$.hideSubview();
-		e.preventDefault();
-	});*/
+  "use strict";
+  var thisBody = document.body || document.documentElement,
+   thisStyle = thisBody.style,
+   $this,
+   supportTransition = thisStyle.transition !== undefined || thisStyle.WebkitTransition !== undefined || thisStyle.MozTransition !== undefined || thisStyle.MsTransition !== undefined || thisStyle.OTransition !== undefined
 
-	$.extend({
+  /*$(subviewBackClass).on("click", function(e) {
+   $.hideSubview();
+   e.preventDefault();
+  });*/
 
-		dynForm: function(options)
-		{
-			// extend the options from pre-defined values:
-			var defaults = {
-				formId : "", 
-				formObj: {},
-				formValues: {},
-				onLoad : null,
-				onSave: null,
-				savePath : '/ph/common/save'
-			};
+  $.extend({
 
-			var settings = $.extend({}, defaults, options);
-			$this = this;
+   dynForm: function(options) {
+    // extend the options from pre-defined values:
+    var defaults = {
+     formId: "",
+     formObj: {},
+     formValues: {},
+     onLoad: null,
+     onSave: null,
+     savePath: '/ph/common/save'
+    };
 
-			console.info("build Form dynamically into form tag : ",settings.formId);
-			console.dir(settings.formObj);
+    var settings = $.extend({}, defaults, options);
+    $this = this;
 
-			/* **************************************
-			* BUILD FORM based on formObj
-			***************************************** */
-			var form = {
-				rules : {}
-			};
-			var fieldHTML = '';
+    console.info("build Form dynamically into form tag : ", settings.formId);
+    console.dir(settings.formObj);
 
-			/* **************************************
-			* Error Section
-			***************************************** */
-			var errorHTML = '<div class="errorHandler alert alert-danger no-display">'+
-							'<i class="fa fa-remove-sign"></i> You have some form errors. Please check below.'+
-						'</div>';
-			$(settings.formId).append(errorHTML);
+    /* **************************************
+     * BUILD FORM based on formObj
+     ***************************************** */
+    var form = {
+     rules: {}
+    };
+    var fieldHTML = '';
 
-			$.each(settings.formObj.jsonSchema.properties,function(field,fieldObj) { 
+    /* **************************************
+     * Error Section
+     ***************************************** */
+    var errorHTML = '<div class="errorHandler alert alert-danger no-display">' +
+     '<i class="fa fa-remove-sign"></i> You have some form errors. Please check below.' +
+     '</div>';
+    $(settings.formId).append(errorHTML);
 
-				if(fieldObj.rules)
-					form.rules[field] = fieldObj.rules;//{required:true}
-				
-				fieldHTML = buildInputField(field, fieldObj, settings.formValues);
-				$(settings.formId).append(fieldHTML);
-			});
-			
-			/* **************************************
-			* CONTEXT ELEMENTS, used for saving purposes
-			***************************************** */
-			fieldHTML = '<input type="hidden" name="key" value="'+settings.formObj.key+'"/>';
-	        fieldHTML += '<input type="hidden" name="collection" value="'+settings.formObj.collection+'"/>';
-	        fieldHTML += '<input type="hidden" name="id" value="'+((settings.formObj.id) ? settings.formObj.id : "")+'"/>';
-	       
-        	fieldHTML += '<div class="form-actions">'+
-						'<button type="submit" class="btn btn-green pull-right">'+
-							'Submit <i class="fa fa-arrow-circle-right"></i>'+
-						'</button>'+
-					'</div>';
+    $.each(settings.formObj.jsonSchema.properties, function(field, fieldObj) {
 
-	        $(settings.formId).append(fieldHTML);
+     if (fieldObj.rules)
+      form.rules[field] = fieldObj.rules; //{required:true}
 
-			/* **************************************
-			* bind any events Post building 
-			***************************************** */
-			bindDynFormEvents(settings,form.rules);
+     fieldHTML = buildInputField(field, fieldObj, settings.formValues);
+     $(settings.formId).append(fieldHTML);
+    });
 
-			if(settings.onLoad && jQuery.isFunction( settings.onLoad ) )
-				settings.onLoad();
-		    
+    /* **************************************
+     * CONTEXT ELEMENTS, used for saving purposes
+     ***************************************** */
+    fieldHTML = '<input type="hidden" name="key" value="' + settings.formObj.key + '"/>';
+    fieldHTML += '<input type="hidden" name="collection" value="' + settings.formObj.collection + '"/>';
+    fieldHTML += '<input type="hidden" name="id" value="' + ((settings.formObj.id) ? settings.formObj.id : "") + '"/>';
 
-			return form;
-		},
+    fieldHTML += '<div class="form-actions">' +
+     '<button type="submit" class="btn btn-green pull-right">' +
+     'Submit <i class="fa fa-arrow-circle-right"></i>' +
+     '</button>' +
+     '</div>';
 
-		/*buildForm: function() { 
-			console.dir($this.formObj);
-		},*/
+    $(settings.formId).append(fieldHTML);
 
-	});
-		
-	function buildInputField(field, fieldObj,formValues)
-	{
-		var fieldHTML = '<div class="form-group">';
-		var required = "";
-		if(fieldObj.rules && fieldObj.rules.required)
-			required = "*";
+    /* **************************************
+     * bind any events Post building
+     ***************************************** */
+    bindDynFormEvents(settings, form.rules);
 
-		if(fieldObj.label)
-			fieldHTML += '<label class=" control-label" for="'+field+'">'+
-                fieldObj.label+required+
-            '</label>';
+    if (settings.onLoad && jQuery.isFunction(settings.onLoad))
+     settings.onLoad();
 
-        var iconOpen = (fieldObj.icon) ? '<span class="input-icon">'   : '';
-        var iconClose = (fieldObj.icon) ? '<i class="'+fieldObj.icon+'"></i> </span>' : '';
-        var placeholder = (fieldObj.placeholder) ? fieldObj.placeholder+required : '';
-        var fieldClass = (fieldObj.class) ? fieldObj.class : '';
-        var value = "";
-        if( fieldObj.value ) 
-        	value = fieldObj.value;
-        else if (formValues && formValues[field]) 
-        	value = formValues[field];
 
-        /* **************************************
-		* 
-		***************************************** */
-        if( field.indexOf("separator")>=0 ) 
-        	fieldHTML += '<div class="text-large text-bold panel-blue text-white center padding-10'+fieldClass+'">'+iconOpen+iconClose+fieldObj.title+'</div>';
-        
-        /* **************************************
-		* STANDARD TEXT INPUT
-		***************************************** */
-        else if( !fieldObj.inputType || fieldObj.inputType == "text" || fieldObj.inputType == "numeric" ) 
-        	fieldHTML += iconOpen+'<input type="text" class="form-control '+fieldClass+'" name="'+field+'" id="'+field+'" value="'+value+'" placeholder="'+placeholder+'"/>'+iconClose;
-        
-        /* **************************************
-		* HIDDEN
-		***************************************** */
-        else if( fieldObj.inputType == "hidden" ) 
-        	fieldHTML += '<input type="hidden" name="'+field+'" id="'+field+'" value="'+value+'"/>';
-        
-        /* **************************************
-		* TEXTAREA
-		***************************************** */
-        else if ( fieldObj.inputType == "textarea" ) 
-        	fieldHTML += '<textarea id="'+field+'" class="form-control '+fieldClass+'" name="'+field+'" placeholder="'+placeholder+'">'+value+'</textarea>';
-        
-        /* **************************************
-		* CHECKBOX
-		***************************************** */
-        else if ( fieldObj.inputType == "checkbox" ) {
-        	if(value == "")
-        		value="25/01/2014";
-        	fieldHTML += '<input type="checkbox" class="'+fieldClass+'" name="'+field+'" id="'+field+'" value="'+value+'"/> '+placeholder;
-        }
+    return form;
+   },
 
-        /* **************************************
-		* SELECT , we use select2
-		***************************************** */
-        else if ( fieldObj.inputType == "select" ) {
-        	if(value == "")
-        		value="25/01/2014";
-        	fieldHTML += '<select class="select2Input '+fieldClass+'" name="'+field+'" id="'+field+'" style="width: 100%;height:30px">'+
-        					 '<option value="">'+placeholder+'</option>';
-			$.each(fieldObj.options, function(optKey, optVal) { 
-				fieldHTML += '<option value="'+optKey+'">'+optVal+'</option>';
-			});	
-			fieldHTML += '</select>';
-        }
+   /*buildForm: function() {
+    console.dir($this.formObj);
+   },*/
 
-        /* **************************************
-		* DATE INPUT , we use bootstrap-datepicker
-		***************************************** */
-        else if ( fieldObj.inputType == "date" ) {
-        	if(placeholder == "")
-        		placeholder="25/01/2014";
-        	fieldHTML += iconOpen+'<input type="text" class="form-control dateInput '+fieldClass+'" name="'+field+'" id="'+field+'" value="'+value+'" placeholder="'+placeholder+'"/>'+iconClose;
-        }
+  });
 
-        /* **************************************
-		* TIME INPUT , we use 
-		***************************************** */
-        else if ( fieldObj.inputType == "time" ) {
-        	if(placeholder == "")
-        		placeholder="20:30";
-        	fieldHTML += iconOpen+'<input type="text" class="form-control timeInput '+fieldClass+'" name="'+field+'" id="'+field+'" value="'+value+'" placeholder="'+placeholder+'"/>'+iconClose;
-        }
+  function buildInputField(field, fieldObj, formValues) {
+   var fieldHTML = '<div class="form-group">';
+   var required = "";
+   if (fieldObj.rules && fieldObj.rules.required)
+    required = "*";
 
-        /* **************************************
-		* LINK
-		***************************************** */
-        else if ( fieldObj.inputType == "link" ) {
-        	if(fieldObj.url.indexOf("http://") < 0 )
-        		fieldObj.url = "http://"+fieldObj.url;
-        	fieldHTML += '<a class="btn btn-primary '+fieldClass+'" href="'+fieldObj.url+'">Go There</a>';
-        }
-        
-		fieldHTML += '</div>';
-		return fieldHTML;
-	}
+   if (fieldObj.label)
+    fieldHTML += '<label class=" control-label" for="' + field + '">' +
+    fieldObj.label + required +
+    '</label>';
 
-	var afterDynBuildSave = null;
-	function bindDynFormEvents (params, formRules) {  
+   var iconOpen = (fieldObj.icon) ? '<span class="input-icon">' : '';
+   var iconClose = (fieldObj.icon) ? '<i class="' + fieldObj.icon + '"></i> </span>' : '';
+   var placeholder = (fieldObj.placeholder) ? fieldObj.placeholder + required : '';
+   var fieldClass = (fieldObj.class) ? fieldObj.class : '';
+   var value = "";
+   if (fieldObj.value)
+    value = fieldObj.value;
+   else if (formValues && formValues[field])
+    value = formValues[field];
 
-		/* **************************************
-		* FORM VALIDATION and save process binding
-		***************************************** */
-		console.info("connecting submit btn to $.validate pluggin");
-		console.dir(formRules);
-		var errorHandler = $('.errorHandler', $(params.formId));
-		$(params.formId).validate({
+   /* **************************************
+    *
+    ***************************************** */
+   if (field.indexOf("separator") >= 0)
+    fieldHTML += '<div class="text-large text-bold panel-blue text-white center padding-10' + fieldClass + '">' + iconOpen + iconClose + fieldObj.title + '</div>';
 
-			rules : formRules,
+   /* **************************************
+    * STANDARD TEXT INPUT
+    ***************************************** */
+   else if (!fieldObj.inputType || fieldObj.inputType == "text" || fieldObj.inputType == "numeric")
+    fieldHTML += iconOpen + '<input type="text" class="form-control ' + fieldClass + '" name="' + field + '" id="' + field + '" value="' + value + '" placeholder="' + placeholder + '"/>' + iconClose;
 
-			submitHandler : function(form) {
-				errorHandler.hide();
+   /* **************************************
+    * HIDDEN
+    ***************************************** */
+   else if (fieldObj.inputType == "hidden")
+    fieldHTML += '<input type="hidden" name="' + field + '" id="' + field + '" value="' + value + '"/>';
 
-				if(params.onSave && jQuery.isFunction( params.onSave ) ){
-					params.onSave();
-					return false;
-		        } else {
-		        	console.info("default SaveProcess",params.savePath);
-		        	console.dir($(params.formId).serializeFormJSON());
-		        	$.ajax({
-		        	  type: "POST",
-		        	  url: params.savePath,
-		        	  data: $(params.formId).serializeFormJSON(),
-		              dataType: "json"
-		        	}).done( function(data){
-		                
-		                if( afterDynBuildSave && typeof afterDynBuildSave == "function" )
-		                    afterDynBuildSave(data.map,data.id);
-		                console.info('saved successfully !');
+   /* **************************************
+    * TEXTAREA
+    ***************************************** */
+   else if (fieldObj.inputType == "textarea")
+    fieldHTML += '<textarea id="' + field + '" class="form-control ' + fieldClass + '" name="' + field + '" placeholder="' + placeholder + '">' + value + '</textarea>';
 
-		        	});
-					return false;
-			    }
-			    
-			},
-			invalidHandler : function(event, validator) {//display error alert on form submit
-				errorHandler.show();
-			}
-		});
-		
-		console.info("connecting any specific input event select2, datepicker...");
-		/* **************************************
-		* SELECTs , we use select2 lib
-		***************************************** */
-		$(".select2Input").select2();
+   /* **************************************
+    * CHECKBOX
+    ***************************************** */
+   else if (fieldObj.inputType == "checkbox") {
+    if (value == "")
+     value = "25/01/2014";
+    fieldHTML += '<input type="checkbox" class="' + fieldClass + '" name="' + field + '" id="' + field + '" value="' + value + '"/> ' + placeholder;
+   }
 
-		/* **************************************
-		* DATE INPUT , we use bootstrap-datepicker lib
-		***************************************** */
-		$(".dateInput").datepicker({ 
-	        autoclose: true,
-	        language: "fr",
-	        format: "dd/mm/yy"
-	    });
-	}
+   /* **************************************
+    * SELECT , we use select2
+    ***************************************** */
+   else if (fieldObj.inputType == "select") {
+    if (value == "")
+     value = "25/01/2014";
+    fieldHTML += '<select class="select2Input ' + fieldClass + '" name="' + field + '" id="' + field + '" style="width: 100%;height:30px">' +
+     '<option value="">' + placeholder + '</option>';
+    $.each(fieldObj.options, function(optKey, optVal) {
+     fieldHTML += '<option value="' + optKey + '">' + optVal + '</option>';
+    });
+    fieldHTML += '</select>';
+   }
+
+   /* **************************************
+    * DATE INPUT , we use bootstrap-datepicker
+    ***************************************** */
+   else if (fieldObj.inputType == "date") {
+    if (placeholder == "")
+     placeholder = "25/01/2014";
+    fieldHTML += iconOpen + '<input type="text" class="form-control dateInput ' + fieldClass + '" name="' + field + '" id="' + field + '" value="' + value + '" placeholder="' + placeholder + '"/>' + iconClose;
+   }
+
+   /* **************************************
+    * TIME INPUT , we use
+    ***************************************** */
+   else if (fieldObj.inputType == "time") {
+    if (placeholder == "")
+     placeholder = "20:30";
+    fieldHTML += iconOpen + '<input type="text" class="form-control timeInput ' + fieldClass + '" name="' + field + '" id="' + field + '" value="' + value + '" placeholder="' + placeholder + '"/>' + iconClose;
+   }
+
+   /* **************************************
+    * LINK
+    ***************************************** */
+   else if (fieldObj.inputType == "link") {
+    if (fieldObj.url.indexOf("http://") < 0)
+     fieldObj.url = "http://" + fieldObj.url;
+    fieldHTML += '<a class="btn btn-primary ' + fieldClass + '" href="' + fieldObj.url + '">Go There</a>';
+   }
+
+   fieldHTML += '</div>';
+   return fieldHTML;
+  }
+
+  var after
+
+  /* **************************************
+   * FORM VALIDATION and save process binding
+   ***************************************** */
+  console.info("connecting submit btn to $.validate pluggin");
+  console.dir(formRules);
+  var errorHandler = $('.errorHandler', $(params.formId));
+  $(params.formId).validate({
+
+   rules: formRules,
+
+   submitHandler: function(form) {
+    errorHandler.hide();
+
+    if (params.onSave && jQuery.isFunction(params.onSave)) {
+     params.onSave();
+     return false;
+    } else {
+     console.info("default SaveProcess", params.savePath);
+     console.dir($(params.formId).serializeFormJSON());
+     $.ajax({
+      type: "POST",
+      url: params.savePath,
+      data: $(params.formId).serializeFormJSON(),
+      dataType: "json"
+     }).done(function(data) {
+
+      if (afterDynBuildSave && typeof afterDynBuildSave == "function")
+       afterDynBuildSave(data.map, data.id);
+      console.info('saved successfully !');
+
+     });
+     return false;
+    }
+
+   },
+   invalidHandler: function(event, validator) { //display error alert on form submit
+    errorHandler.show();
+   }
+  });
+
+  console.info("connecting any specific input event select2, datepicker...");
+  /* **************************************
+   * SELECTs , we use select2 lib
+   ***************************************** */
+  $(".select2Input").select2();
+
+  /* **************************************
+   * DATE INPUT , we use bootstrap-datepicker lib
+   ***************************************** */
+  $(".dateInput").datepicker({
+   autoclose: true,
+   language: "fr",
+   format: "dd/mm/yy"
+  });
+ }
 
 })(jQuery);
 
-$.fn.serializeFormJSON = function () {
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function () {
-        if (o[this.name]) {
-            if (!o[this.name].push) {
-                o[this.name] = [o[this.name]];
-            }
-            o[this.name].push(this.value || '');
-        } else {
-            o[this.name] = this.value || '';
-        }
-    });
-    return o;
+$.fn.serializeFormJSON = function() {
+ var o = {};
+ var a = this.serializeArray();
+ $.each(a, function() {
+  if (o[this.name]) {
+   if (!o[this.name].push) {
+    o[this.name] = [o[this.name]];
+   }
+   o[this.name].push(this.value || '');
+  } else {
+   o[this.name] = this.value || '';
+  }
+ });
+ return o;
 };
